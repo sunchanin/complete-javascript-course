@@ -77,9 +77,12 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 const eurToUsd = 1.1;
 
-const displayMovements = movements => {
+const displayMovements = (movements, sort = false) => {
   containerMovements.innerHTML = '';
-  movements.forEach((mov, i) => {
+
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+
+  movs.forEach((mov, i) => {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
     const html = `
         <div class="movements__row">
@@ -189,4 +192,34 @@ btnTransfer.addEventListener('click', e => {
     inputTransferTo.value = inputTransferAmount.value = '';
     inputTransferTo.blur();
   }
+});
+
+btnClose.addEventListener('click', e => {
+  e.preventDefault();
+  if (
+    inputCloseUsername.value == currentAccount.username &&
+    inputClosePin.value == currentAccount.pin
+  ) {
+    const index = accounts.findIndex(
+      acc => acc.username == currentAccount.username
+    );
+    accounts.splice(index, 1);
+    containerApp.style.opacity = 0;
+  }
+});
+
+btnLoan.addEventListener('click', e => {
+  e.preventDefault();
+  const amount = Number(inputLoanAmount.value);
+  if (amount > 0 && currentAccount.movements.some(mov => mov >= 0.1 * amount)) {
+    currentAccount.movements.push(amount);
+    updateUI(currentAccount);
+  }
+});
+
+let isSort = false;
+btnSort.addEventListener('click', e => {
+  e.preventDefault();
+  isSort = !isSort;
+  displayMovements(currentAccount.movements, isSort);
 });
