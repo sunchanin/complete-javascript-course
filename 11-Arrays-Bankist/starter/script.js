@@ -223,3 +223,41 @@ btnSort.addEventListener('click', e => {
   isSort = !isSort;
   displayMovements(currentAccount.movements, isSort);
 });
+
+// const bankDepositSum = accounts
+//   .flatMap(acc => acc.movements)
+//   .filter(acc => acc > 0)
+//   .reduce((acc, dep) => acc + dep);
+// console.log('bankDepositSum: ', bankDepositSum);
+
+// const deposit1000 = accounts
+//   .flatMap(acc => acc.movements)
+//   .filter(acc => acc >= 1000)
+//   .reduce((acc, dep) => acc + dep);
+
+// const sums = accounts
+//   .flatMap(acc => acc.movements)
+//   .reduce(
+//     (acc, cur) => {
+//       cur > 0 ? (acc.deposits += cur) : (acc.withdrawals += cur);
+//       return acc;
+//     },
+//     { deposits: 0, withdrawals: 0 }
+//   );
+
+const convertTitleCase = title => {
+  const exceptions = ['a', 'an', 'the', 'but', 'or', 'on', 'in', 'with'];
+  const titleCase = title
+    .toLowerCase()
+    .split(' ')
+    .map(word => (exceptions.indexOf(word) == -1 ? word : null))
+    .filter(word => word != null)
+    .map(word => word[0].toUpperCase())
+    .join(' ');
+
+  return titleCase;
+};
+
+console.log(convertTitleCase('this is a nice title'));
+console.log(convertTitleCase('this is a LONG title but not too long'));
+console.log(convertTitleCase('and here is another title with an EXAMPLE'));
