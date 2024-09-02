@@ -175,7 +175,7 @@ const updateUI = function (acc) {
   calcDisplaySummary(acc);
 
   // Display date
-  labelDate.textContent = displayDate(Date.now());
+  labelDate.textContent = new Intl.DateTimeFormat('en-GB').format(Date.now());
 };
 
 ///////////////////////////////////////
