@@ -81,19 +81,43 @@ const inputClosePin = document.querySelector('.form__input--pin');
 /////////////////////////////////////////////////
 // Functions
 
-const displayMovements = function (movements, sort = false) {
+const calcDaysPassed = (day1, day2) => {
+  return Math.round(Math.abs(((day2 - day1) / 1000) * 60 * 60 * 24));
+};
+
+const displayDate = date => {
+  date = new Date(date);
+
+  const daysPassed = calcDaysPassed(Date.now(), date.getTime());
+
+  if (daysPassed < 1) return 'Today';
+  if (daysPassed < 2) return 'Yesterday';
+  if (daysPassed <= 7) return `${daysPassed} days ago`;
+
+  const { currentDate, currentMonth, currrentYear } = {
+    currentDate: `${date.getDate()}`.padStart(2, '0'),
+    currentMonth: `${date.getMonth() + 1}`.padStart(2, '0'),
+    currrentYear: date.getFullYear(),
+  };
+
+  return `${currentDate}/${currentMonth}/${currrentYear}`;
+};
+
+const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = '';
 
-  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+  const movs = sort
+    ? acc.movements.slice().sort((a, b) => a - b)
+    : acc.movements;
 
   movs.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
 
     const html = `
       <div class="movements__row">
-        <div class="movements__type movements__type--${type}">${
-      i + 1
-    } ${type}</div>
+        <div class="movements__type movements__type--${type}">${i + 1} ${type}
+     </div>
+        <div class="movements__date">${displayDate(acc.movementsDates[i])}</div>
         <div class="movements__value">${mov}€</div>
       </div>
     `;
@@ -142,13 +166,16 @@ createUsernames(accounts);
 
 const updateUI = function (acc) {
   // Display movements
-  displayMovements(acc.movements);
+  displayMovements(acc);
 
   // Display balance
   calcDisplayBalance(acc);
 
   // Display summary
   calcDisplaySummary(acc);
+
+  // Display date
+  labelDate.textContent = displayDate(Date.now());
 };
 
 ///////////////////////////////////////
@@ -196,7 +223,10 @@ btnTransfer.addEventListener('click', function (e) {
   ) {
     // Doing the transfer
     currentAccount.movements.push(-amount);
+    currentAccount.movementsDates.push(new Date().toISOString());
+
     receiverAcc.movements.push(amount);
+    receiverAcc.movementsDates.push(new Date().toISOString());
 
     // Update UI
     updateUI(currentAccount);
@@ -211,6 +241,7 @@ btnLoan.addEventListener('click', function (e) {
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
     // Add movement
     currentAccount.movements.push(amount);
+    currentAccount.movementsDates.push(new Date().toISOString());
 
     // Update UI
     updateUI(currentAccount);
@@ -250,4 +281,25 @@ btnSort.addEventListener('click', function (e) {
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-// LECTURES
+// Fake Login
+
+currentAccount = account1;
+updateUI(account1);
+containerApp.style.opacity = 100;
+
+// const now = new Date();
+// const {
+//   currentDate,
+//   currentMonth,
+//   currrentYear,
+//   currentHours,
+//   currentMinutes,
+// } = {
+//   currentDate: `${now.getDate()}`.padStart(2, '0'),
+//   currentMonth: `${now.getMonth() + 1}`.padStart(2, '0'),
+//   currrentYear: now.getFullYear(),
+//   currentHours: now.getHours(),
+//   currentMinutes: now.getMinutes(),
+// };
+
+// labelDate.textContent = `${currentDate}/${currentMonth}/${currrentYear}, ${currentHours}:${currentMinutes}`;
