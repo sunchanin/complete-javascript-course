@@ -82,25 +82,27 @@ const inputClosePin = document.querySelector('.form__input--pin');
 // Functions
 
 const calcDaysPassed = (day1, day2) => {
-  return Math.round(Math.abs(((day2 - day1) / 1000) * 60 * 60 * 24));
+  return Math.round(Math.abs((day2 - day1) / (1000 * 60 * 60 * 24)));
 };
 
-const displayDate = date => {
+const displayDate = (date, locale) => {
   date = new Date(date);
 
   const daysPassed = calcDaysPassed(Date.now(), date.getTime());
+  console.log('daysPassed: ', daysPassed);
 
   if (daysPassed < 1) return 'Today';
   if (daysPassed < 2) return 'Yesterday';
   if (daysPassed <= 7) return `${daysPassed} days ago`;
 
-  const { currentDate, currentMonth, currrentYear } = {
-    currentDate: `${date.getDate()}`.padStart(2, '0'),
-    currentMonth: `${date.getMonth() + 1}`.padStart(2, '0'),
-    currrentYear: date.getFullYear(),
-  };
+  return new Intl.DateTimeFormat(locale).format(date);
+};
 
-  return `${currentDate}/${currentMonth}/${currrentYear}`;
+const formattedCur = cur => {
+  return new Intl.NumberFormat('EUR', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(cur);
 };
 
 const displayMovements = function (acc, sort = false) {
@@ -117,8 +119,11 @@ const displayMovements = function (acc, sort = false) {
       <div class="movements__row">
         <div class="movements__type movements__type--${type}">${i + 1} ${type}
      </div>
-        <div class="movements__date">${displayDate(acc.movementsDates[i])}</div>
-        <div class="movements__value">${mov}€</div>
+        <div class="movements__date">${displayDate(
+          acc.movementsDates[i],
+          acc.locale
+        )}</div>
+        <div class="movements__value">${formattedCur(mov)}</div>
       </div>
     `;
 
@@ -128,29 +133,28 @@ const displayMovements = function (acc, sort = false) {
 
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${acc.balance}€`;
+  labelBalance.textContent = formattedCur(acc.balance);
 };
 
 const calcDisplaySummary = function (acc) {
   const incomes = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
-  labelSumIn.textContent = `${incomes}€`;
+  labelSumIn.textContent = formattedCur(incomes);
 
   const out = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov, 0);
-  labelSumOut.textContent = `${Math.abs(out)}€`;
+  labelSumOut.textContent = formattedCur(out);
 
   const interest = acc.movements
     .filter(mov => mov > 0)
     .map(deposit => (deposit * acc.interestRate) / 100)
     .filter((int, i, arr) => {
-      // console.log(arr);
       return int >= 1;
     })
     .reduce((acc, int) => acc + int, 0);
-  labelSumInterest.textContent = `${interest}€`;
+  labelSumInterest.textContent = formattedCur(interest);
 };
 
 const createUsernames = function (accs) {
@@ -175,7 +179,19 @@ const updateUI = function (acc) {
   calcDisplaySummary(acc);
 
   // Display date
-  labelDate.textContent = new Intl.DateTimeFormat('en-GB').format(Date.now());
+
+  const locale = currentAccount.locale;
+
+  const now = new Date();
+  const options = {
+    hour: 'numeric',
+    minute: 'numeric',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    weekday: 'long',
+  };
+  labelDate.textContent = new Intl.DateTimeFormat(locale, options).format(now);
 };
 
 ///////////////////////////////////////
@@ -287,19 +303,11 @@ currentAccount = account1;
 updateUI(account1);
 containerApp.style.opacity = 100;
 
-// const now = new Date();
-// const {
-//   currentDate,
-//   currentMonth,
-//   currrentYear,
-//   currentHours,
-//   currentMinutes,
-// } = {
-//   currentDate: `${now.getDate()}`.padStart(2, '0'),
-//   currentMonth: `${now.getMonth() + 1}`.padStart(2, '0'),
-//   currrentYear: now.getFullYear(),
-//   currentHours: now.getHours(),
-//   currentMinutes: now.getMinutes(),
-// };
-
-// labelDate.textContent = `${currentDate}/${currentMonth}/${currrentYear}, ${currentHours}:${currentMinutes}`;
+const num = 3898293.9;
+const locale = navigator.language;
+console.log(
+  new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(num)
+);
