@@ -89,7 +89,6 @@ const displayDate = (date, locale) => {
   date = new Date(date);
 
   const daysPassed = calcDaysPassed(Date.now(), date.getTime());
-  console.log('daysPassed: ', daysPassed);
 
   if (daysPassed < 1) return 'Today';
   if (daysPassed < 2) return 'Yesterday';
@@ -205,7 +204,6 @@ btnLogin.addEventListener('click', function (e) {
   currentAccount = accounts.find(
     acc => acc.username === inputLoginUsername.value
   );
-  console.log(currentAccount);
 
   if (currentAccount?.pin === Number(inputLoginPin.value)) {
     // Display UI and message
@@ -217,6 +215,9 @@ btnLogin.addEventListener('click', function (e) {
     // Clear input fields
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
+
+    // Set login timeout
+    startLogOutTimer();
 
     // Update UI
     updateUI(currentAccount);
@@ -253,16 +254,20 @@ btnLoan.addEventListener('click', function (e) {
   e.preventDefault();
 
   const amount = Number(inputLoanAmount.value);
+  setTimeout(() => {
+    if (
+      amount > 0 &&
+      currentAccount.movements.some(mov => mov >= amount * 0.1)
+    ) {
+      // Add movement
+      currentAccount.movements.push(amount);
+      currentAccount.movementsDates.push(new Date().toISOString());
 
-  if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
-    // Add movement
-    currentAccount.movements.push(amount);
-    currentAccount.movementsDates.push(new Date().toISOString());
-
-    // Update UI
-    updateUI(currentAccount);
-  }
-  inputLoanAmount.value = '';
+      // Update UI
+      updateUI(currentAccount);
+    }
+    inputLoanAmount.value = '';
+  }, 2500);
 });
 
 btnClose.addEventListener('click', function (e) {
@@ -275,7 +280,7 @@ btnClose.addEventListener('click', function (e) {
     const index = accounts.findIndex(
       acc => acc.username === currentAccount.username
     );
-    console.log(index);
+
     // .indexOf(23)
 
     // Delete account
@@ -295,6 +300,34 @@ btnSort.addEventListener('click', function (e) {
   sorted = !sorted;
 });
 
+// Set logout timer
+const startLogOutTimer = () => {
+  // Set time to 5 minutes
+  let time = 5;
+
+  // Call the timer every second
+  const timer = setInterval(() => {
+    let mins = String(Math.trunc(time / 60)).padStart(2, 0);
+    let seconds = String(time % 60).padStart(2, 0);
+
+    labelTimer.textContent = `${mins} : ${seconds}`;
+    time--;
+
+    // When 0 seconds, stop timer and log out user
+    if (time <= 0) {
+      clearInterval(timer);
+      logout();
+    }
+  }, 1000);
+};
+
+// Logout user
+const logout = () => {
+  currentAccount = null;
+  containerApp.style.opacity = 0;
+  labelWelcome.textContent = 'Log in to get started';
+};
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // Fake Login
@@ -302,12 +335,3 @@ btnSort.addEventListener('click', function (e) {
 currentAccount = account1;
 updateUI(account1);
 containerApp.style.opacity = 100;
-
-const num = 3898293.9;
-const locale = navigator.language;
-console.log(
-  new Intl.NumberFormat(locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(num)
-);
