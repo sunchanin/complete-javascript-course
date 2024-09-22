@@ -281,7 +281,7 @@ class EVCl extends CarCl {
   }
 
   accelerate() {
-    this.speed += 20;
+    this.speed += 20; 
     this.#charge -= 1;
 
     console.log(
